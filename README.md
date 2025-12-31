@@ -13,3 +13,8 @@ Please give credit whilst it didnt take much time thanks to gemini where i then 
 
 
 Thank you for reading i love doing stuff like this
+
+
+
+
+-Files will be saved to desktop (on linux may be hidden but still in desktop folder still need to check windows)
